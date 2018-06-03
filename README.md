@@ -12,4 +12,6 @@ Reversi (also known as Othello) AI using MCTS (Monte Carlo Tree Search) for Andr
 ## Reversi
 - implemented as bitboard, on Xiaomi Redmi 3S generates about 7500 games per thread per second, from the beginning
 
+The code for bitboard and cpu/mcts are written in pure java so they can be taken freely and used elsewhere, not only android. The android code is partly written in kotlin.
+
 The AI strength tested against KDE's kreversi. A 1 second 4 threads (or ~30000 games from the beginning) often beats the "very hard" of kreversi and sometimes the "extremely hard". It's neat considering almost no heuristics typical to Reversi is written.

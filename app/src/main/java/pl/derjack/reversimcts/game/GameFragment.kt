@@ -112,7 +112,7 @@ class GameFragment : Fragment(), BoardView.BoardListener, GameState.Listener, Lo
     private fun updateViews() {
         progressBar.visibility = if (gameState?.state == GameState.State.CALCULATING) View.VISIBLE else View.GONE
         undoBtn.isEnabled = canUndo()
-        scoreTxt.text = gameState?.game?.run { "You: ${getScore(Game.FIRST)}, Cpu: ${getScore(Game.SECOND)}" } ?: "You: -, Cpu: -"
+        scoreTxt.text = gameState?.game?.run { "You: ${getScore(humanPlayer)}, Cpu: ${getScore((humanPlayer+1)and1)}" } ?: "You: -, Cpu: -"
         gamesTxt.text = gameState?.run { "Simulated games: ${lastCalculatedMove?.games ?: '-'}" } ?: "Simulated games: -"
 
         boardView.invalidate()

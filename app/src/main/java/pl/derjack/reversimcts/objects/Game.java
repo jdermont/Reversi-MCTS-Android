@@ -26,17 +26,15 @@ public class Game {
 
     public long currentBoard;
     public long opponentBoard;
-    private long emptyBoard;
+    public long emptyBoard;
 
     public long[] moves;
-
-    private Stack<State> states;
-    private Stack<Point> lastMoves;
+    public Stack<State> states;
+    public Stack<Point> lastMoves;
 
     public Game() {
         currentPlayer = FIRST;
 
-        // obvious numbers of course
         currentBoard = 34628173824L;
         opponentBoard = 68853694464L;
         generateEmptyBoard();
@@ -55,26 +53,14 @@ public class Game {
         this.emptyBoard = game.emptyBoard;
         this.moves[0] = game.moves[0];
         this.moves[1] = game.moves[1];
-
-        states.clear();
     }
 
-    public void do_move(int x, int y) {
-        states.push(new State(currentBoard,opponentBoard,currentPlayer));
-        addMoves(currentPlayer, x, y);
-        changePlayer();
-        generateMoves(currentPlayer);
-        if (moves[currentPlayer] == 0) generateMoves((currentPlayer+1)&1);
-        if (!isEnd() && moves[currentPlayer] == 0) changePlayer();
-        lastMoves.push(new Point(x,y));
+    public void changePlayer() {
+        currentPlayer = (currentPlayer+1)&1;
     }
 
-    public void do_move_no_history(int x, int y) {
-        addMoves(currentPlayer, x, y);
-        changePlayer();
-        generateMoves(currentPlayer);
-        if (moves[currentPlayer] == 0) generateMoves((currentPlayer+1)&1);
-        if (!isEnd() && moves[currentPlayer] == 0) changePlayer();
+    private void generateEmptyBoard() {
+        emptyBoard = ~(currentBoard|opponentBoard);
     }
 
     public void undo() {
@@ -89,13 +75,22 @@ public class Game {
         }
     }
 
-    public boolean canUndo() {
-        return !states.isEmpty();
+    public void makeMove(int x, int y) {
+        states.push(new State(currentBoard,opponentBoard,currentPlayer));
+        addMoves(currentPlayer, x, y);
+        changePlayer();
+        generateMoves(currentPlayer);
+        if (moves[currentPlayer] == 0) generateMoves((currentPlayer+1)&1);
+        if (!isFinished() && moves[currentPlayer] == 0) changePlayer();
+        lastMoves.add(new Point(x,y));
     }
 
-    public Point getLastMove() {
-        if (!lastMoves.isEmpty()) return lastMoves.peek();
-        return null;
+    public void makeMoveNoHistory(int x, int y) {
+        addMoves(currentPlayer, x, y);
+        changePlayer();
+        generateMoves(currentPlayer);
+        if (moves[currentPlayer] == 0) generateMoves((currentPlayer+1)&1);
+        if (!isFinished() && moves[currentPlayer] == 0) changePlayer();
     }
 
     public void addMoves(int player, int x, int y) {
@@ -146,16 +141,8 @@ public class Game {
         return 0L;
     }
 
-    public void changePlayer() {
-        currentPlayer = (currentPlayer+1)&1;
-    }
-
-    public boolean isEnd() {
+    public boolean isFinished() {
         return moves[FIRST]==0 && moves[SECOND]==0;
-    }
-
-    private void generateEmptyBoard() {
-        emptyBoard = ~(currentBoard|opponentBoard);
     }
 
     private void generateMoves(int player) {
@@ -233,6 +220,28 @@ public class Game {
         return legal;
     }
 
+    public long getHash(int player) {
+        long hash = (69696969*currentBoard) ^ (137111*opponentBoard);
+        hash ^= 9991234567L*(player+1);
+        return hash;
+    }
+
+    public List<Point> getAvailableMoves(int player) {
+        List<Point> availableMoves = new ArrayList<>();
+        long moves = this.moves[player];
+        for (int x=0,y=0;moves!=0;moves<<=1) {
+            if ((moves&Long.MIN_VALUE) != 0) {
+                availableMoves.add(new Point(x, y));
+            }
+            x++;
+            if ((x&7) == 0) {
+                x = 0;
+                y++;
+            }
+        }
+        return availableMoves;
+    }
+
     public List<Point> getAvailableMoves() {
         List<Point> availableMoves = new ArrayList<>();
         long moves = this.moves[currentPlayer];
@@ -267,13 +276,32 @@ public class Game {
     }
 
     public int getScore(int player) {
-        int score = 0;
-        long board = player == FIRST ? currentBoard : opponentBoard;
-        while (board != 0) {
-            board &= board-1;
-            score++;
+        int output = 0;
+        long b = player == FIRST ? currentBoard : opponentBoard;
+        while (b != 0) {
+            b &= b-1;
+            output++;
         }
-        return score;
+        return output;
+    }
+
+    public boolean canUndo() {
+        return !states.isEmpty();
+    }
+
+    public Point getLastMove() {
+        if (!lastMoves.isEmpty()) return lastMoves.peek();
+        return null;
+    }
+
+    public int getEmpty() {
+        int empty = 0;
+        long eb = emptyBoard;
+        while (eb != 0) {
+            eb &= eb-1;
+            empty++;
+        }
+        return empty;
     }
 
     private static class State {

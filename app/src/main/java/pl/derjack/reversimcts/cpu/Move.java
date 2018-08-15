@@ -4,58 +4,35 @@ import android.graphics.Point;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-
-import pl.derjack.reversimcts.objects.Game;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Move implements Comparable<Move> {
-    public Point point;
-    public int score;
-    public int games;
-    public boolean terminate;
+    public final int player;
+    public final Point p;
+    public boolean nextPlayer;
+    public boolean terminal;
 
     public Move parent;
-    public List<Move> ruchy = new ArrayList<>();
-    public int player = Game.NONE;
+    public List<Move> children;
+    public Lock lock;
 
-    public Move(Point point) {
-        this.point = point;
-    }
+    public double score;
+    public int games;
+    public int virtualLoss;
 
-    public Move copy() {
-        Move ruch = new Move(point);
-        ruch.player = player;
-        ruch.score = score;
-        ruch.games = games;
-        ruch.terminate = terminate;
-        for (Move r : ruchy) {
-            Move copy = r.copy();
-            copy.parent = ruch;
-            ruch.ruchy.add(copy);
-        }
-
-        return ruch;
-    }
-
-    public static List<Move> copyList(List<Move> ruchy) {
-        List<Move> output = new ArrayList<>(ruchy.size());
-        for (Move ruch : ruchy) {
-            output.add(ruch.copy());
-        }
-        return output;
+    public Move(int player, Point p) {
+        this.player = player;
+        this.p = p;
+        this.children = new ArrayList<>();
+        this.lock = new ReentrantLock();
     }
 
     @Override
-    public int compareTo(Move other) {
-        if (games == other.games) {
-            return Integer.compare(score,other.score);
+    public int compareTo(Move o) {
+        if (score == o.score) {
+            return Integer.compare(games,o.games);
         }
-        return Integer.compare(games,other.games);
+        return Double.compare(score,o.score);
     }
-
-    @Override
-    public String toString() {
-        return String.format(Locale.ENGLISH, "%d/%d %s",score,games,ruchy.isEmpty()?"":ruchy.toString());
-    }
-
 }

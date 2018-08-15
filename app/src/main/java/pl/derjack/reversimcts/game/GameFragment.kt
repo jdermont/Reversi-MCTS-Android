@@ -16,7 +16,6 @@ import kotlinx.android.synthetic.main.fragment_game.view.*
 import pl.derjack.reversimcts.R
 import pl.derjack.reversimcts.cpu.Move
 import pl.derjack.reversimcts.gfx.BoardView
-import pl.derjack.reversimcts.objects.Game
 
 class GameFragment : Fragment(), BoardView.BoardListener, GameState.Listener, LoaderManager.LoaderCallbacks<GameState> {
     var gameState: GameState? = null
@@ -78,10 +77,10 @@ class GameFragment : Fragment(), BoardView.BoardListener, GameState.Listener, Lo
 
     private fun doMove(coords: Point) {
         gameState?.game?.apply {
-            do_move(coords.x,coords.y)
-            if (!isEnd && currentPlayer == gameState?.cpu?.player) {
+            makeMove(coords.x,coords.y)
+            if (!isFinished && currentPlayer == gameState?.cpu?.player) {
                 gameState?.calculateMove()
-            } else if (isEnd) {
+            } else if (isFinished) {
                 val humanScore = getScore(gameState?.humanPlayer!!)
                 val cpuScore = getScore(gameState?.cpu?.player!!)
                 when {
@@ -112,7 +111,7 @@ class GameFragment : Fragment(), BoardView.BoardListener, GameState.Listener, Lo
     private fun updateViews() {
         progressBar.visibility = if (gameState?.state == GameState.State.CALCULATING) View.VISIBLE else View.GONE
         undoBtn.isEnabled = canUndo()
-        scoreTxt.text = gameState?.game?.run { "You: ${getScore(humanPlayer)}, Cpu: ${getScore((humanPlayer+1)and1)}" } ?: "You: -, Cpu: -"
+        scoreTxt.text = gameState?.game?.run { "You: ${getScore(gameState?.humanPlayer!!)}, Cpu: ${getScore((gameState?.humanPlayer!!+1)and 1)}" } ?: "You: -, Cpu: -"
         gamesTxt.text = gameState?.run { "Simulated games: ${lastCalculatedMove?.games ?: '-'}" } ?: "Simulated games: -"
 
         boardView.invalidate()
@@ -124,9 +123,9 @@ class GameFragment : Fragment(), BoardView.BoardListener, GameState.Listener, Lo
 
     override fun onMoveCalculated(move: Move) {
         if (move.games == 0) {
-            handler.postDelayed({ doMove(move.point) }, 250L)
+            handler.postDelayed({ doMove(move.p) }, 250L)
         } else {
-            handler.post({ doMove(move.point) })
+            handler.post({ doMove(move.p) })
         }
     }
 

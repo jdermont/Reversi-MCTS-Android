@@ -8,6 +8,7 @@ Reversi (also known as Othello) AI using MCTS (Monte Carlo Tree Search) for Andr
 - simulations are biased, as choosing corner move is 2x more likely than other move
 - heuristic bias towards corner moves and moves that give us additional moves
 - parallel implemented as tree parallel with local mutexes and virtual loss
+- MCTS Solver (backpropagating proven wins and loss)
 - RandomXS128 taken directly from libgdx, enough for few-threads random simulations
 
 ## Reversi
